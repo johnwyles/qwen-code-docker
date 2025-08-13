@@ -1,4 +1,4 @@
-# Qwen Coder Docker Startup Script (PowerShell)
+# Qwen Code Docker Startup Script (PowerShell)
 # Configures environment and starts the Docker containers
 
 param(
@@ -32,7 +32,7 @@ function Write-Error {
 }
 
 try {
-    Write-Info "Starting Qwen Coder Docker Environment..."
+    Write-Info "Starting Qwen Code Docker Environment..."
 
     # Set default environment variables
     if (-not $OllamaHost) {
@@ -121,7 +121,7 @@ try {
     
     Write-Info "You can view logs with: $logCmd"
     Write-Info "To stop containers: $stopCmd"
-    Write-Success "Qwen Coder environment is ready!"
+    Write-Success "Qwen Code environment is ready!"
 
 } catch {
     Write-Error "An unexpected error occurred: $($_.Exception.Message)"

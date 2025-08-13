@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  qwen-coder:
+  qwen-code:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: qwen-coder
+    container_name: qwen-code
     stdin_open: true
     tty: true
     environment:

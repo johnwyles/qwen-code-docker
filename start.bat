@@ -1,10 +1,10 @@
 @echo off
-REM Qwen Coder Docker Startup Script (Windows Batch)
+REM Qwen Code Docker Startup Script (Windows Batch)
 REM Configures environment and starts the Docker containers
 
 setlocal enabledelayedexpansion
 
-echo [INFO] Starting Qwen Coder Docker Environment...
+echo [INFO] Starting Qwen Code Docker Environment...
 
 REM Set default environment variables if not already set
 if not defined OLLAMA_HOST set OLLAMA_HOST=avi.alliance.unm.edu
@@ -67,6 +67,6 @@ if errorlevel 1 (
 echo [SUCCESS] Docker containers started successfully!
 echo [INFO] You can view logs with: !COMPOSE_CMD! logs -f
 echo [INFO] To stop containers: !COMPOSE_CMD! down
-echo [SUCCESS] Qwen Coder environment is ready!
+echo [SUCCESS] Qwen Code environment is ready!
 
 pause

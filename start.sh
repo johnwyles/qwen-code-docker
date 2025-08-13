@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Qwen Coder Docker Startup Script
+# Qwen Code Docker Startup Script
 # Configures environment and starts the Docker containers
 
 set -e  # Exit on any error
@@ -29,7 +29,7 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-print_info "Starting Qwen Coder Docker Environment..."
+print_info "Starting Qwen Code Docker Environment..."
 
 # Set default environment variables
 export OLLAMA_HOST=${OLLAMA_HOST:-"avi.alliance.unm.edu"}
@@ -90,4 +90,4 @@ else
     exit 1
 fi
 
-print_success "Qwen Coder environment is ready!"
+print_success "Qwen Code environment is ready!"

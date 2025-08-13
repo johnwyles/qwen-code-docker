@@ -1,4 +1,4 @@
-# Qwen Coder Docker Environment
+# Qwen Code Docker Environment
 
 A containerized development environment for the qwen-code CLI tool with OpenAI-compatible API support and configurable Ollama endpoint integration.
 
@@ -6,7 +6,7 @@ A containerized development environment for the qwen-code CLI tool with OpenAI-c
 
 1. **Clone or navigate to this directory**
    ```bash
-   cd /home/jwyles/code/qwen-coder-docker
+   cd /home/jwyles/code/qwen-code-docker
    ```
 
 2. **Set up environment variables**
@@ -27,7 +27,7 @@ A containerized development environment for the qwen-code CLI tool with OpenAI-c
 
 5. **Access the interactive shell**
    ```bash
-   docker-compose exec qwen-coder bash
+   docker-compose exec qwen-code bash
    ```
 
 6. **Start using qwen-code**
@@ -73,7 +73,7 @@ Create `docker-compose.override.yml`:
 ```yaml
 version: '3.8'
 services:
-  qwen-coder:
+  qwen-code:
     environment:
       - OLLAMA_HOST=custom-endpoint.com:8443
       - OLLAMA_API_KEY=your_custom_key
@@ -84,7 +84,7 @@ services:
 #### Linux/macOS
 ```bash
 # Standard setup
-cd /home/jwyles/code/qwen-coder-docker
+cd /home/jwyles/code/qwen-code-docker
 cp .env.example .env
 vim .env
 node tests/test-connection.js
@@ -94,7 +94,7 @@ docker-compose up -d
 #### Windows (PowerShell)
 ```powershell
 # Clone and setup
-cd qwen-coder-docker
+cd qwen-code-docker
 Copy-Item .env.example .env
 notepad .env
 node tests/test-connection.js
@@ -202,24 +202,24 @@ The `config/settings.json` file contains detailed configuration options for:
 
 ### Interactive Mode
 ```bash
-docker-compose exec qwen-coder bash
+docker-compose exec qwen-code bash
 qwen-code
 ```
 
 ### Direct Command Execution
 ```bash
-docker-compose exec qwen-coder qwen-code generate --prompt "Create a hello world function"
+docker-compose exec qwen-code qwen-code generate --prompt "Create a hello world function"
 ```
 
 ### Code Review
 ```bash
-docker-compose exec qwen-coder qwen-code review /workspace/code/myfile.js
+docker-compose exec qwen-code qwen-code review /workspace/code/myfile.js
 ```
 
 ## File Structure
 
 ```
-qwen-coder-docker/
+qwen-code-docker/
 ├── README.md               # This comprehensive guide
 ├── .env.example            # Environment variables template
 ├── .gitignore              # Git ignore rules for security
@@ -276,7 +276,7 @@ curl -H "Authorization: Bearer $OLLAMA_API_KEY" \
 ### Container Won't Start
 - Check if all required environment variables are set
 - Verify API endpoint is accessible
-- Check Docker logs: `docker-compose logs qwen-coder`
+- Check Docker logs: `docker-compose logs -f qwen-code`
 
 ### Permission Issues
 - The container runs as user `qwen` (non-root)
@@ -297,10 +297,10 @@ docker-compose up --build
 
 ### Updating qwen-code CLI
 ```bash
-docker-compose exec qwen-coder npm update -g qwen-code
+docker-compose exec qwen-code npm update -g qwen-code
 ```
 
 ### Accessing Logs
 ```bash
-docker-compose logs -f qwen-coder
+docker-compose logs -f qwen-code
 ```
