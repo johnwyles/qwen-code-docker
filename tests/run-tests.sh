@@ -39,7 +39,7 @@ print_separator() {
 }
 
 # Load environment variables with defaults
-export OLLAMA_HOST=${OLLAMA_HOST:-"avi.alliance.unm.edu"}
+export OLLAMA_HOST=${OLLAMA_HOST:-"localhost"}
 export OLLAMA_PORT=${OLLAMA_PORT:-"8443"}
 
 # Build endpoint URL

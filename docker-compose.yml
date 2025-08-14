@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   qwen-code:
     build:
@@ -9,34 +7,26 @@ services:
     stdin_open: true
     tty: true
     environment:
-      # OpenAI-compatible configuration
-      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://avi.alliance.unm.edu:8443/v1}
+      # qwen-code CLI configuration
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-http://localhost:11434/v1}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-qwen3-coder:latest}
+      - GEMINI_DEFAULT_AUTH_TYPE=${GEMINI_DEFAULT_AUTH_TYPE:-openai}
       
-      # Ollama configuration
-      - OLLAMA_HOST=${OLLAMA_HOST:-avi.alliance.unm.edu}
-      - OLLAMA_PORT=${OLLAMA_PORT:-8443}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT:-https://avi.alliance.unm.edu:8443}
-      
-      # qwen-code specific configuration
+      # qwen-code CLI config path
       - QWEN_CONFIG_PATH=/workspace/.config/qwen-code
-      - QWEN_MODEL=${QWEN_MODEL:-qwen2.5-coder:32b}
-      - QWEN_TEMPERATURE=${QWEN_TEMPERATURE:-0.1}
-      - QWEN_MAX_TOKENS=${QWEN_MAX_TOKENS:-4096}
-      
-      # Development environment
-      - NODE_ENV=${NODE_ENV:-development}
-      - DEBUG=${DEBUG:-false}
     volumes:
       # Mount workspace for code access
       - ./workspace:/workspace/code
       # Mount config directory
       - ./config:/workspace/.config/qwen-code
-      # Mount host's git config (optional)
-      - ~/.gitconfig:/home/qwen/.gitconfig:ro
+      # Mount host's git config (optional - only if it exists)
+      - ${HOME}/.gitconfig:/home/qwen/.gitconfig:ro
       # Mount SSH keys (optional, for git operations)
       - ~/.ssh:/home/qwen/.ssh:ro
     working_dir: /workspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - qwen-network
     restart: unless-stopped

@@ -7,23 +7,18 @@ setlocal enabledelayedexpansion
 echo [INFO] Starting Qwen Code Docker Environment...
 
 REM Set default environment variables if not already set
-if not defined OLLAMA_HOST set OLLAMA_HOST=avi.alliance.unm.edu
-if not defined OLLAMA_PORT set OLLAMA_PORT=8443
-
-REM Check if CUSTOM_ENDPOINT is provided, otherwise build from components
-if defined CUSTOM_ENDPOINT (
-    set OPENAI_BASE_URL=%CUSTOM_ENDPOINT%
-    echo [INFO] Using custom endpoint: !OPENAI_BASE_URL!
-) else (
-    set OPENAI_BASE_URL=https://%OLLAMA_HOST%:%OLLAMA_PORT%/v1
-    echo [INFO] Built endpoint from components: !OPENAI_BASE_URL!
-)
+if not defined OPENAI_BASE_URL set OPENAI_BASE_URL=http://localhost:11434/v1
+if not defined OPENAI_MODEL set OPENAI_MODEL=qwen3-coder:latest
 
 REM Display configuration
 echo [INFO] Configuration:
-echo   OLLAMA_HOST: %OLLAMA_HOST%
-echo   OLLAMA_PORT: %OLLAMA_PORT%
 echo   OPENAI_BASE_URL: !OPENAI_BASE_URL!
+echo   OPENAI_MODEL: !OPENAI_MODEL!
+if defined OPENAI_API_KEY (
+    echo   OPENAI_API_KEY: ***set***
+) else (
+    echo   OPENAI_API_KEY: ***not set***
+)
 
 REM Check if docker-compose.yml exists
 if not exist "docker-compose.yml" (
@@ -67,6 +62,7 @@ if errorlevel 1 (
 echo [SUCCESS] Docker containers started successfully!
 echo [INFO] You can view logs with: !COMPOSE_CMD! logs -f
 echo [INFO] To stop containers: !COMPOSE_CMD! down
+echo [INFO] Access qwen-code CLI: !COMPOSE_CMD! exec qwen-code bash
 echo [SUCCESS] Qwen Code environment is ready!
 
 pause

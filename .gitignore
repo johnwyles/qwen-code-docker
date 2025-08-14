@@ -276,12 +276,17 @@ gradle-app.setting
 # =============================================================================
 
 # Workspace and temporary files
+workspace/
 workspace/temp/
 workspace/cache/
 workspace/.tmp/
 workspace/node_modules/
 workspace/dist/
 workspace/build/
+
+# Config directory (user-specific runtime configs)
+config/settings.json
+!config/settings.json.example
 
 # Backup files
 backups/

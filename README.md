@@ -1,306 +1,218 @@
-# Qwen Code Docker Environment
+# 🚀 Qwen-Code Docker
 
-A containerized development environment for the qwen-code CLI tool with OpenAI-compatible API support and configurable Ollama endpoint integration.
+[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Node.js](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-## Quick Start
+> 🐳 A containerized development environment for the Qwen-Code CLI with OpenAI-compatible API support
 
-1. **Clone or navigate to this directory**
+## ✨ Features
+
+- 🔧 **Pre-configured Environment** - Ready-to-use Docker container with latest Qwen-Code CLI
+- 🌐 **OpenAI Compatible** - Works with any OpenAI-compatible API (Ollama, OpenAI, etc.)
+- 🔄 **Intelligent Container Management** - Automatic rebuild detection and state handling
+- 📁 **Persistent Storage** - Your work and configuration persist across container restarts
+- ⚡ **Latest Versions** - Always uses the latest Node.js, npm, and Qwen-Code CLI
+- 🛡️ **Security First** - Non-root user execution with proper permissions
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Your Host     │    │  Docker Container │    │  AI Service     │
+│                 │    │                  │    │                 │
+│  ./start.sh ────┼────┤  qwen-code CLI   ├────┤  Ollama/OpenAI  │
+│  ./workspace/   │    │  Node.js 22 LTS  │    │  (your choice)  │
+│  ./config/      │    │  Latest npm      │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- 🐳 [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+- 🤖 An OpenAI-compatible API endpoint (Ollama, OpenAI, etc.)
+
+### Installation
+
+1. **Clone the repository:**
    ```bash
-   cd /home/jwyles/code/qwen-code-docker
+   git clone https://github.com/your-username/qwen-code-docker.git
+   cd qwen-code-docker
    ```
 
-2. **Set up environment variables**
+2. **Configure your environment:**
    ```bash
    cp .env.example .env
-   # Edit .env with your API key and configuration
+   nano .env  # Edit with your API settings
    ```
 
-3. **Test your configuration**
+3. **Start the environment:**
    ```bash
-   node tests/test-connection.js
+   chmod +x start.sh
+   ./start.sh
    ```
 
-4. **Build and run the container**
-   ```bash
-   docker-compose up -d --build
-   ```
+4. **Choose "OpenAI" when prompted** and start coding! 🎉
 
-5. **Access the interactive shell**
-   ```bash
-   docker-compose exec qwen-code bash
-   ```
-
-6. **Start using qwen-code**
-   ```bash
-   qwen-code --help
-   ```
-
-## Configuration
+## ⚙️ Configuration
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `OPENAI_BASE_URL` | `https://avi.alliance.unm.edu:8443/v1` | OpenAI-compatible API endpoint |
-| `OPENAI_API_KEY` | (required) | Your API key for authentication |
-| `OLLAMA_HOST` | `avi.alliance.unm.edu:8443` | Ollama server endpoint |
-| `OLLAMA_PROTOCOL` | `https` | Protocol to use (http/https) |
-| `OLLAMA_API_KEY` | (required) | API key for Ollama authentication |
-| `MODEL_NAME` | `qwen2.5-coder` | Model to use |
-| `QWEN_MODEL` | `qwen2.5-coder:32b` | Legacy model setting |
-| `CONTAINER_PORT` | `8080` | Port to expose from container |
-| `WORKSPACE_PATH` | `./workspace` | Local workspace directory |
+Create a `.env` file with your API configuration:
 
-### Configuration Methods
-
-#### Method 1: Environment File (.env)
 ```bash
-# Copy the example file
-cp .env.example .env
+# API endpoint for your AI service
+OPENAI_BASE_URL=http://your-ollama-server:11434/v1
 
-# Edit with your settings
-nano .env
+# Your API key (leave empty for local Ollama)
+OPENAI_API_KEY=your-api-key-here
+
+# Model name to use
+OPENAI_MODEL=qwen3-coder:latest
 ```
 
-#### Method 2: Export Environment Variables
+### Supported Providers
+
+| Provider | Base URL | API Key Required |
+|----------|----------|------------------|
+| 🦙 **Local Ollama** | `http://localhost:11434/v1` | No |
+| 🌐 **Remote Ollama** | `http://your-server:11434/v1` | Optional |
+| 🧠 **OpenAI** | `https://api.openai.com/v1` | Yes |
+| 🔗 **Custom API** | `https://your-api.com/v1` | Varies |
+
+## 🎯 Usage
+
+### Starting the Environment
+
+The intelligent `start.sh` script handles everything automatically:
+
 ```bash
-export OLLAMA_HOST=your-endpoint.com:8443
-export OLLAMA_API_KEY=your_api_key
+./start.sh
 ```
 
-#### Method 3: Docker Compose Override
-Create `docker-compose.override.yml`:
-```yaml
-version: '3.8'
-services:
-  qwen-code:
-    environment:
-      - OLLAMA_HOST=custom-endpoint.com:8443
-      - OLLAMA_API_KEY=your_custom_key
-```
+**What it does:**
+- 🔍 Detects if container exists and its state
+- 🔄 Rebuilds image if Dockerfile has changed  
+- 💾 Preserves your workspace and configuration
+- 🚀 Launches you directly into the Qwen-Code CLI
 
-### Platform-Specific Setup
+### Working with Files
 
-#### Linux/macOS
+Your project files are mounted and persistent:
+
 ```bash
-# Standard setup
-cd /home/jwyles/code/qwen-code-docker
-cp .env.example .env
-vim .env
-node tests/test-connection.js
-docker-compose up -d
+# Host directory          → Container path
+./workspace/             → /workspace/code/
+./config/                → /workspace/.config/qwen-code/
 ```
 
-#### Windows (PowerShell)
-```powershell
-# Clone and setup
-cd qwen-code-docker
-Copy-Item .env.example .env
-notepad .env
-node tests/test-connection.js
-docker-compose up -d
-```
+### Common Commands
 
-### Custom Endpoint Configuration
-
-#### University/Institution Endpoints
 ```bash
-# UNM Alliance (default)
-OLLAMA_HOST=avi.alliance.unm.edu:8443
-OLLAMA_PROTOCOL=https
+# Stop the environment
+docker compose down
 
-# Other institution example
-OLLAMA_HOST=ml-server.university.edu:8443
-OLLAMA_PROTOCOL=https
+# View container logs
+docker compose logs -f
+
+# Manual container access
+docker exec -it qwen-code bash
+
+# Rebuild from scratch
+docker compose build --no-cache
 ```
 
-#### Local Ollama Instance
-```bash
-# Local installation
-OLLAMA_HOST=localhost:11434
-OLLAMA_PROTOCOL=http
-OLLAMA_API_KEY=  # Leave empty for local instances
-```
+## 🛠️ Development
 
-## Security Best Practices
-
-### API Key Management
-- **Never commit API keys to version control**
-- Use `.env` files (included in `.gitignore`)
-- Rotate API keys regularly
-- Use different keys for development/production
-
-### Environment Variables
-```bash
-# Good: Use .env file
-echo "OLLAMA_API_KEY=secret123" >> .env
-
-# Good: Export temporarily
-export OLLAMA_API_KEY=secret123
-
-# Bad: Don't put in shell history
-# OLLAMA_API_KEY=secret123 docker-compose up
-```
-
-### File Permissions
-```bash
-# Secure your .env file
-chmod 600 .env
-
-# Secure any key files
-chmod 600 config/api-keys/*
-```
-
-## Testing and Validation
-
-### Connection Test
-```bash
-# Test your configuration
-node tests/test-connection.js
-
-# Full test including model functionality
-node tests/test-connection.js --full
-
-# Expected output:
-# ✓ Environment variables loaded
-# ✓ Connected to Ollama at avi.alliance.unm.edu:8443
-# ✓ API key authentication successful
-# ✓ Model qwen2.5-coder is available
-```
-
-### Manual Testing
-```bash
-# Test API endpoint directly
-curl -H "Authorization: Bearer $OLLAMA_API_KEY" \
-     https://avi.alliance.unm.edu:8443/api/tags
-
-# Test model availability
-curl -H "Authorization: Bearer $OLLAMA_API_KEY" \
-     -X POST https://avi.alliance.unm.edu:8443/api/generate \
-     -d '{"model":"qwen2.5-coder","prompt":"Hello"}'
-```
-
-### Settings Configuration
-
-The `config/settings.json` file contains detailed configuration options for:
-- API endpoint settings
-- Model parameters
-- Session management
-- Interface preferences
-- Development options
-- Workspace configuration
-- Security settings
-
-## Volume Mounts
-
-- `./workspace:/workspace/code` - Your code workspace
-- `./config:/workspace/.config/qwen-code` - Configuration files
-- `~/.gitconfig:/home/qwen/.gitconfig:ro` - Git configuration (read-only)
-- `~/.ssh:/home/qwen/.ssh:ro` - SSH keys (read-only)
-
-## Usage Examples
-
-### Interactive Mode
-```bash
-docker-compose exec qwen-code bash
-qwen-code
-```
-
-### Direct Command Execution
-```bash
-docker-compose exec qwen-code qwen-code generate --prompt "Create a hello world function"
-```
-
-### Code Review
-```bash
-docker-compose exec qwen-code qwen-code review /workspace/code/myfile.js
-```
-
-## File Structure
+### Project Structure
 
 ```
 qwen-code-docker/
-├── README.md               # This comprehensive guide
-├── .env.example            # Environment variables template
-├── .gitignore              # Git ignore rules for security
-├── Dockerfile              # Container definition
-├── docker-compose.yml      # Service orchestration
-├── .dockerignore           # Docker ignore patterns
-├── config/
-│   └── settings.json       # qwen-code configuration
-├── tests/
-│   └── test-connection.js  # Connection validation script
-└── workspace/              # Your code workspace
+├── 📁 workspace/           # Your code files (mounted)
+├── 📁 config/              # Qwen-Code configuration (mounted)
+├── 📁 docs/                # Documentation
+├── 🐳 Dockerfile           # Container definition
+├── 🐳 docker-compose.yml   # Service configuration
+├── ⚙️ .env                 # Your API settings
+├── ⚙️ .env.example         # Example configuration
+├── 🚀 start.sh             # Intelligent startup script
+└── 📖 README.md            # This file
 ```
 
-## Troubleshooting
+### Container Specifications
 
-### Connection Issues
+- **Base Image:** Ubuntu 22.04 LTS
+- **Node.js:** v22 LTS (latest)
+- **npm:** Latest version
+- **User:** Non-root (`qwen`) for security
+- **Ports:** No exposed ports (connects to external APIs)
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**🔴 Connection Error**
 ```bash
-# Check if endpoint is reachable
-ping avi.alliance.unm.edu
+# Check your API endpoint is accessible
+curl -v http://your-api-server/v1/models
 
-# Test port connectivity
-telnet avi.alliance.unm.edu 8443
-
-# Check SSL certificate
-openssl s_client -connect avi.alliance.unm.edu:8443
+# Verify environment variables
+docker exec qwen-code env | grep OPENAI
 ```
 
-### Authentication Issues
-- Verify API key is correct and not expired
-- Check if API key has proper permissions
-- Ensure API key is properly set in environment
-
-### Model Issues
+**🔴 Permission Denied (Docker)**
 ```bash
-# List available models
-curl -H "Authorization: Bearer $OLLAMA_API_KEY" \
-     https://avi.alliance.unm.edu:8443/api/tags
-
-# Pull model if needed
-curl -H "Authorization: Bearer $OLLAMA_API_KEY" \
-     -X POST https://avi.alliance.unm.edu:8443/api/pull \
-     -d '{"name":"qwen2.5-coder"}'
+# Add user to docker group
+sudo usermod -aG docker $USER
+# Log out and back in, or run:
+newgrp docker
 ```
 
-### Common Error Messages
-
-| Error | Solution |
-|-------|----------|
-| Connection refused | Check OLLAMA_HOST and port |
-| Unauthorized | Verify OLLAMA_API_KEY |
-| Model not found | Pull model or check MODEL_NAME |
-| SSL certificate error | Check OLLAMA_PROTOCOL setting |
-
-### Container Won't Start
-- Check if all required environment variables are set
-- Verify API endpoint is accessible
-- Check Docker logs: `docker-compose logs -f qwen-code`
-
-### Permission Issues
-- The container runs as user `qwen` (non-root)
-- Ensure workspace directory has proper permissions
-
-### API Connection Issues
-- Verify `OPENAI_BASE_URL` is correct
-- Check if API key is valid
-- Ensure network connectivity to the API endpoint
-
-## Development
-
-### Rebuilding the Container
+**🔴 Container Won't Start**
 ```bash
-docker-compose down
-docker-compose up --build
+# Check Docker is running
+docker info
+
+# Rebuild from scratch
+docker compose down
+docker compose build --no-cache
 ```
 
-### Updating qwen-code CLI
-```bash
-docker-compose exec qwen-code npm update -g qwen-code
-```
+### Getting Help
 
-### Accessing Logs
-```bash
-docker-compose logs -f qwen-code
-```
+1. 📖 Check the [Configuration Guide](docs/CONFIGURATION.md)
+2. 🐛 Review [Troubleshooting Guide](docs/TROUBLESHOOTING.md)  
+3. 💬 Open an [issue](https://github.com/your-username/qwen-code-docker/issues)
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+1. 🍴 Fork the repository
+2. 🌿 Create a feature branch
+3. 📝 Make your changes
+4. ✅ Test thoroughly
+5. 📤 Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Qwen-Code CLI](https://github.com/QwenLM/Qwen3-Coder) - The amazing AI coding assistant
+- [Ollama](https://ollama.ai/) - Local AI model serving
+- [Docker](https://www.docker.com/) - Containerization platform
+
+---
+
+<div align="center">
+
+**⭐ Star this repository if it helped you!**
+
+Made with ❤️ for the AI coding community
+
+</div>

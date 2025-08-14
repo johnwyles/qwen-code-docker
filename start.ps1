@@ -2,9 +2,9 @@
 # Configures environment and starts the Docker containers
 
 param(
-    [string]$OllamaHost,
-    [string]$OllamaPort,
-    [string]$CustomEndpoint
+    [string]$OpenaiBaseUrl,
+    [string]$OpenaiModel,
+    [string]$OpenaiApiKey
 )
 
 # Error handling
@@ -35,33 +35,32 @@ try {
     Write-Info "Starting Qwen Code Docker Environment..."
 
     # Set default environment variables
-    if (-not $OllamaHost) {
-        $OllamaHost = if ($env:OLLAMA_HOST) { $env:OLLAMA_HOST } else { "avi.alliance.unm.edu" }
+    if (-not $OpenaiBaseUrl) {
+        $OpenaiBaseUrl = if ($env:OPENAI_BASE_URL) { $env:OPENAI_BASE_URL } else { "http://localhost:11434/v1" }
     }
     
-    if (-not $OllamaPort) {
-        $OllamaPort = if ($env:OLLAMA_PORT) { $env:OLLAMA_PORT } else { "8443" }
+    if (-not $OpenaiModel) {
+        $OpenaiModel = if ($env:OPENAI_MODEL) { $env:OPENAI_MODEL } else { "qwen3-coder:latest" }
+    }
+
+    if (-not $OpenaiApiKey) {
+        $OpenaiApiKey = $env:OPENAI_API_KEY
     }
 
     # Set environment variables
-    $env:OLLAMA_HOST = $OllamaHost
-    $env:OLLAMA_PORT = $OllamaPort
-
-    # Check if CUSTOM_ENDPOINT is provided, otherwise build from components
-    if ($CustomEndpoint -or $env:CUSTOM_ENDPOINT) {
-        $endpoint = if ($CustomEndpoint) { $CustomEndpoint } else { $env:CUSTOM_ENDPOINT }
-        $env:OPENAI_BASE_URL = $endpoint
-        Write-Info "Using custom endpoint: $($env:OPENAI_BASE_URL)"
-    } else {
-        $env:OPENAI_BASE_URL = "https://$($env:OLLAMA_HOST):$($env:OLLAMA_PORT)/v1"
-        Write-Info "Built endpoint from components: $($env:OPENAI_BASE_URL)"
-    }
+    $env:OPENAI_BASE_URL = $OpenaiBaseUrl
+    $env:OPENAI_MODEL = $OpenaiModel
+    $env:OPENAI_API_KEY = $OpenaiApiKey
 
     # Display configuration
     Write-Info "Configuration:"
-    Write-Host "  OLLAMA_HOST: $($env:OLLAMA_HOST)"
-    Write-Host "  OLLAMA_PORT: $($env:OLLAMA_PORT)"
     Write-Host "  OPENAI_BASE_URL: $($env:OPENAI_BASE_URL)"
+    Write-Host "  OPENAI_MODEL: $($env:OPENAI_MODEL)"
+    if ($env:OPENAI_API_KEY) {
+        Write-Host "  OPENAI_API_KEY: ***set***"
+    } else {
+        Write-Host "  OPENAI_API_KEY: ***not set***"
+    }
 
     # Check if docker-compose.yml exists
     if (-not (Test-Path "docker-compose.yml")) {
@@ -72,22 +71,22 @@ try {
 
     # Check if Docker is running
     try {
-        $null = docker info 2>$null
+        & docker info | Out-Null
     } catch {
         Write-Error "Docker is not running or not accessible"
         Write-Error "Please start Docker Desktop and try again"
         exit 1
     }
 
-    # Check if docker-compose is available and determine command
-    $composeCmd = $null
+    # Check if docker-compose is available
+    $composeCmd = ""
     try {
-        $null = docker-compose --version 2>$null
+        & docker-compose --version | Out-Null
         $composeCmd = "docker-compose"
     } catch {
         try {
-            $null = docker compose version 2>$null
-            $composeCmd = "docker", "compose"
+            & docker compose version | Out-Null
+            $composeCmd = "docker compose"
         } catch {
             Write-Error "docker-compose or 'docker compose' command not found"
             Write-Error "Please install Docker Compose and try again"
@@ -98,35 +97,19 @@ try {
     Write-Info "Starting Docker containers..."
 
     # Start the containers
-    if ($composeCmd -is [array]) {
-        $process = Start-Process -FilePath $composeCmd[0] -ArgumentList ($composeCmd[1], "up", "-d") -Wait -PassThru -NoNewWindow
-    } else {
-        $process = Start-Process -FilePath $composeCmd -ArgumentList "up", "-d" -Wait -PassThru -NoNewWindow
-    }
-
-    if ($process.ExitCode -ne 0) {
+    $result = & $composeCmd up -d
+    if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to start Docker containers"
         exit 1
     }
 
     Write-Success "Docker containers started successfully!"
-    
-    if ($composeCmd -is [array]) {
-        $logCmd = "$($composeCmd[0]) $($composeCmd[1]) logs -f"
-        $stopCmd = "$($composeCmd[0]) $($composeCmd[1]) down"
-    } else {
-        $logCmd = "$composeCmd logs -f"
-        $stopCmd = "$composeCmd down"
-    }
-    
-    Write-Info "You can view logs with: $logCmd"
-    Write-Info "To stop containers: $stopCmd"
+    Write-Info "You can view logs with: $composeCmd logs -f"
+    Write-Info "To stop containers: $composeCmd down"
+    Write-Info "Access qwen-code CLI: $composeCmd exec qwen-code bash"
     Write-Success "Qwen Code environment is ready!"
 
 } catch {
-    Write-Error "An unexpected error occurred: $($_.Exception.Message)"
+    Write-Error "An error occurred: $($_.Exception.Message)"
     exit 1
 }
-
-# Pause equivalent for PowerShell
-Read-Host "Press Enter to continue..."
