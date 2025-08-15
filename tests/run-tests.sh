@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Qwen Coder Connection Tests
-# Tests connectivity and displays configuration
+# Qwen Code Docker Test Runner
+# Runs all available tests: connection tests, unit tests, and integration tests
 
 set -e  # Exit on any error
 
@@ -50,7 +50,7 @@ else
 fi
 
 print_separator
-print_info "Qwen Coder Connection Tests"
+print_info "Qwen Code Docker Test Suite"
 print_separator
 
 # Display current configuration
@@ -180,6 +180,132 @@ print_separator
 print_info "Connection tests completed!"
 print_separator
 
+# Parse command line arguments for test selection
+RUN_CONNECTION=true
+RUN_INTEGRATION=true
+RUN_UNIT=true
+SHOW_HELP=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --connection-only)
+            RUN_INTEGRATION=false
+            RUN_UNIT=false
+            shift
+            ;;
+        --integration-only)
+            RUN_CONNECTION=false
+            RUN_UNIT=false
+            shift
+            ;;
+        --unit-only)
+            RUN_CONNECTION=false
+            RUN_INTEGRATION=false
+            shift
+            ;;
+        --skip-connection)
+            RUN_CONNECTION=false
+            shift
+            ;;
+        --skip-integration)
+            RUN_INTEGRATION=false
+            shift
+            ;;
+        --skip-unit)
+            RUN_UNIT=false
+            shift
+            ;;
+        --help)
+            SHOW_HELP=true
+            shift
+            ;;
+        *)
+            print_error "Unknown option: $1"
+            SHOW_HELP=true
+            shift
+            ;;
+    esac
+done
+
+if [ "$SHOW_HELP" = true ]; then
+    echo ""
+    print_info "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Test Selection:"
+    echo "  --connection-only     Run only connection tests"
+    echo "  --integration-only    Run only integration tests"
+    echo "  --unit-only          Run only unit tests"
+    echo "  --skip-connection    Skip connection tests"
+    echo "  --skip-integration   Skip integration tests"
+    echo "  --skip-unit         Skip unit tests"
+    echo "  --help              Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  $0                           # Run all tests"
+    echo "  $0 --integration-only        # Run only Docker integration tests"
+    echo "  $0 --skip-connection         # Skip basic connection tests"
+    exit 0
+fi
+
+# Determine script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Track overall results
+OVERALL_SUCCESS=true
+
+# Run bridge unit tests
+if [ "$RUN_UNIT" = true ]; then
+    echo ""
+    print_separator
+    print_info "Running Bridge Unit Tests"
+    print_separator
+    
+    if [ -f "$PROJECT_ROOT/gemini-openai-bridge/package.json" ]; then
+        cd "$PROJECT_ROOT/gemini-openai-bridge"
+        if npm test; then
+            print_success "Bridge unit tests passed"
+        else
+            print_error "Bridge unit tests failed"
+            OVERALL_SUCCESS=false
+        fi
+        cd "$PROJECT_ROOT"
+    else
+        print_warning "Bridge unit tests not found"
+    fi
+fi
+
+# Run integration tests
+if [ "$RUN_INTEGRATION" = true ]; then
+    echo ""
+    print_separator
+    print_info "Running Integration Tests"
+    print_separator
+    
+    if [ -f "$SCRIPT_DIR/integration/test-e2e.sh" ]; then
+        if bash "$SCRIPT_DIR/integration/test-e2e.sh"; then
+            print_success "Integration tests passed"
+        else
+            print_error "Integration tests failed"
+            OVERALL_SUCCESS=false
+        fi
+    else
+        print_warning "Integration tests not found"
+    fi
+fi
+
+# Final summary
+echo ""
+print_separator
+if [ "$OVERALL_SUCCESS" = true ]; then
+    print_success "🎉 ALL TESTS PASSED!"
+    print_info "Your qwen-code Docker setup is working correctly"
+else
+    print_error "💥 SOME TESTS FAILED"
+    print_error "Check the output above for details"
+fi
+print_separator
+
 # Summary
 echo ""
 print_info "Summary:"
@@ -196,4 +322,11 @@ elif [ -f "./docker-compose.yml" ]; then
 else
     echo ""
     print_warning "docker-compose.yml not found - ensure you're in the correct directory"
+fi
+
+# Exit with appropriate code
+if [ "$OVERALL_SUCCESS" = true ]; then
+    exit 0
+else
+    exit 1
 fi

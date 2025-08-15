@@ -28,8 +28,8 @@ RUN npm install -g npm@latest
 # Verify Node.js and npm installation
 RUN node --version && npm --version
 
-# Install a proper OpenAI-compatible CLI
-RUN npm install -g llm-cli \
+# Install qwen-code CLI
+RUN npm install -g @qwen-code/qwen-code \
     && echo "=== Verifying qwen-code installation ===" \
     && npm list -g @qwen-code/qwen-code \
     && echo "=== Finding qwen binary ===" \
@@ -42,15 +42,25 @@ RUN npm install -g llm-cli \
     && echo "=== Final check ===" \
     && which qwen || echo "Still not in PATH"
 
+# Copy bridge code
+COPY gemini-openai-bridge /bridge
+WORKDIR /bridge
+RUN npm install
+
 # Create a non-root user for better security
 RUN useradd -m -s /bin/bash qwen
 
 # Set working directory
 WORKDIR /workspace
 
+# Copy entrypoint script (before switching to non-root)
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Create config directory
 RUN mkdir -p /workspace/.config/qwen-code \
-    && chown -R qwen:qwen /workspace
+    && chown -R qwen:qwen /workspace \
+    && chown -R qwen:qwen /bridge
 
 # Switch to non-root user
 USER qwen
@@ -59,5 +69,6 @@ USER qwen
 ENV QWEN_CONFIG_PATH=/workspace/.config/qwen-code
 ENV PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
 
-# Simple entrypoint that just keeps container running
+# Use custom entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/bin/bash"]

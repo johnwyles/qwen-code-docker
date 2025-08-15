@@ -11,6 +11,7 @@
 
 - 🔧 **Pre-configured Environment** - Ready-to-use Docker container with latest Qwen-Code CLI
 - 🌐 **OpenAI Compatible** - Works with any OpenAI-compatible API (Ollama, OpenAI, etc.)
+- 🌉 **Gemini-OpenAI Bridge** - Transparent translation layer for Ollama compatibility
 - 🔄 **Intelligent Container Management** - Automatic rebuild detection and state handling
 - 📁 **Persistent Storage** - Your work and configuration persist across container restarts
 - ⚡ **Latest Versions** - Always uses the latest Node.js, npm, and Qwen-Code CLI
@@ -18,12 +19,26 @@
 
 ## 🏗️ Architecture
 
+### With Gemini-OpenAI Bridge (Recommended for Ollama)
+```
+┌─────────────────┐    ┌──────────────────────────────────┐    ┌─────────────────┐
+│   Your Host     │    │       Docker Container          │    │  AI Service     │
+│                 │    │                                  │    │                 │
+│  ./start.sh ────┼────┤  qwen-code CLI                  │    │                 │
+│  ./workspace/   │    │       ↓ (Gemini format)        │    │                 │
+│  ./config/      │    │  🌉 Bridge (port 8080)         ├────┤  Ollama Server  │
+│                 │    │       ↓ (OpenAI format)        │    │  (port 11434)   │
+│                 │    │  Node.js 22 LTS + npm          │    │                 │
+└─────────────────┘    └──────────────────────────────────┘    └─────────────────┘
+```
+
+### Direct Connection (OpenAI/Compatible APIs)
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Your Host     │    │  Docker Container │    │  AI Service     │
 │                 │    │                  │    │                 │
-│  ./start.sh ────┼────┤  qwen-code CLI   ├────┤  Ollama/OpenAI  │
-│  ./workspace/   │    │  Node.js 22 LTS  │    │  (your choice)  │
+│  ./start.sh ────┼────┤  qwen-code CLI   ├────┤  OpenAI API     │
+│  ./workspace/   │    │  Node.js 22 LTS  │    │  (direct)       │
 │  ./config/      │    │  Latest npm      │    │                 │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
@@ -72,16 +87,22 @@ OPENAI_API_KEY=your-api-key-here
 
 # Model name to use
 OPENAI_MODEL=qwen3-coder:latest
+
+# For Ollama servers (recommended):
+USE_GEMINI_BRIDGE=true
+BRIDGE_TARGET_URL=http://your-ollama-server:11434/v1
+BRIDGE_PORT=8080
+GEMINI_DEFAULT_AUTH_TYPE=openai
 ```
 
 ### Supported Providers
 
-| Provider | Base URL | API Key Required |
-|----------|----------|------------------|
-| 🦙 **Local Ollama** | `http://localhost:11434/v1` | No |
-| 🌐 **Remote Ollama** | `http://your-server:11434/v1` | Optional |
-| 🧠 **OpenAI** | `https://api.openai.com/v1` | Yes |
-| 🔗 **Custom API** | `https://your-api.com/v1` | Varies |
+| Provider | Base URL | API Key Required | Bridge Required |
+|----------|----------|------------------|-----------------|
+| 🦙 **Local Ollama** | `http://localhost:11434/v1` | No | ✅ Recommended |
+| 🌐 **Remote Ollama** | `http://your-server:11434/v1` | Optional | ✅ Recommended |
+| 🧠 **OpenAI** | `https://api.openai.com/v1` | Yes | ❌ Direct |
+| 🔗 **Custom API** | `https://your-api.com/v1` | Varies | ⚠️ Depends |
 
 ## 🎯 Usage
 
@@ -125,6 +146,63 @@ docker exec -it qwen-code bash
 docker compose build --no-cache
 ```
 
+## 🌉 Gemini-OpenAI Bridge
+
+The qwen-code CLI is based on Google's Gemini CLI and sends requests in a hybrid format that includes Gemini-specific fields. This can cause compatibility issues with pure OpenAI-compatible APIs like Ollama.
+
+Our **Gemini-OpenAI Bridge** solves this by:
+
+- 🔄 **Transparent Translation** - Converts Gemini format to clean OpenAI format
+- 🛡️ **Token Limit Protection** - Caps excessive token requests (200k+ → 4k)
+- 🧹 **Field Cleaning** - Removes incompatible Gemini-specific fields
+- ⚡ **Zero Configuration** - Automatically starts when `USE_GEMINI_BRIDGE=true`
+
+### When to Use the Bridge
+
+**✅ Use Bridge:**
+- 🦙 Ollama servers (local or remote)
+- 🔧 APIs that expect pure OpenAI format
+- ⚠️ Getting 400 errors with direct connection
+
+**❌ Direct Connection:**
+- 🧠 OpenAI official API
+- 🔗 APIs that handle Gemini format
+
+### Bridge Configuration
+
+Add these to your `.env` file:
+
+```bash
+# Enable bridge
+USE_GEMINI_BRIDGE=true
+
+# Where the bridge forwards requests
+BRIDGE_TARGET_URL=http://your-ollama-server:11434/v1
+
+# Bridge listening port (default: 8080)
+BRIDGE_PORT=8080
+
+# Enable debug logging (optional)
+BRIDGE_DEBUG=true
+```
+
+### Troubleshooting Bridge
+
+```bash
+# Check bridge health
+curl http://localhost:8080/health
+
+# View bridge logs
+docker logs qwen-code | grep Bridge
+
+# Test request translation
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"qwen3-coder:latest","messages":[{"role":"user","content":"test"}]}'
+```
+
+For detailed bridge documentation, see [`gemini-openai-bridge/README.md`](gemini-openai-bridge/README.md).
+
 ## 🛠️ Development
 
 ### Project Structure
@@ -134,11 +212,14 @@ qwen-code-docker/
 ├── 📁 workspace/           # Your code files (mounted)
 ├── 📁 config/              # Qwen-Code configuration (mounted)
 ├── 📁 docs/                # Documentation
+├── 📁 gemini-openai-bridge/ # Bridge source code & tests
+├── 📁 tests/               # Integration tests
 ├── 🐳 Dockerfile           # Container definition
 ├── 🐳 docker-compose.yml   # Service configuration
 ├── ⚙️ .env                 # Your API settings
 ├── ⚙️ .env.example         # Example configuration
 ├── 🚀 start.sh             # Intelligent startup script
+├── 🧪 docker-entrypoint.sh # Container startup script
 └── 📖 README.md            # This file
 ```
 

@@ -15,6 +15,12 @@ services:
       
       # qwen-code CLI config path
       - QWEN_CONFIG_PATH=/workspace/.config/qwen-code
+      
+      # Gemini-OpenAI Bridge configuration
+      - USE_GEMINI_BRIDGE=${USE_GEMINI_BRIDGE:-false}
+      - BRIDGE_TARGET_URL=${BRIDGE_TARGET_URL:-${OPENAI_BASE_URL}}
+      - BRIDGE_PORT=${BRIDGE_PORT:-8080}
+      - BRIDGE_DEBUG=${BRIDGE_DEBUG:-false}
     volumes:
       # Mount workspace for code access
       - ./workspace:/workspace/code
