@@ -57,10 +57,12 @@ WORKDIR /workspace
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Create config directory
+# Create config directory with proper ownership
 RUN mkdir -p /workspace/.config/qwen-code \
-    && chown -R qwen:qwen /workspace \
-    && chown -R qwen:qwen /bridge
+    && chown qwen:qwen /workspace \
+    && chown qwen:qwen /workspace/.config \
+    && chown qwen:qwen /workspace/.config/qwen-code \
+    && chown qwen:qwen /bridge
 
 # Switch to non-root user
 USER qwen
